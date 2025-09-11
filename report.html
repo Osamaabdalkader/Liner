@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقارير وأداء الشبكة - نظام إدارة شبكة الإحالات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="reports.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="user-info">
+                <img id="user-avatar" src="https://ui-avatars.com/api/?name=مستخدم&background=random" alt="صورة المستخدم" width="40" height="40" style="border-radius: 50%;">
+                <div>
+                    <span id="username">مستخدم</span>
+                    <span id="user-rank" class="rank-badge">مرتبة 0</span>
+                    <span id="admin-badge" class="admin-badge" style="display: none;">مشرف</span>
+                </div>
+            </div>
+            <h1><i class="fas fa-chart-line"></i> تقارير وأداء الشبكة</h1>
+            <p>تقارير تحليلية عن أداء شبكة الإحالات الخاصة بك</p>
+        </header>
+        
+        <nav class="tabs">
+            <a href="index.html" class="tab"><i class="fas fa-home"></i> الرئيسية</a>
+            <a href="network.html" class="tab"><i class="fas fa-network-wired"></i> شبكتي</a>
+            <a href="ranks.html" class="tab"><i class="fas fa-trophy"></i> الترقيات</a>
+            <a href="reports.html" class="tab active"><i class="fas fa-chart-line"></i> التقارير</a>
+            <a href="#" id="admin-nav" style="display: none;" class="tab"><i class="fas fa-crown"></i> المشرف</a>
+        </nav>
+        
+        <div class="filters">
+            <select id="time-filter" class="filter-select">
+                <option value="7">آخر 7 أيام</option>
+                <option value="30" selected>آخر 30 يومًا</option>
+                <option value="90">آخر 90 يومًا</option>
+                <option value="365">آخر سنة</option>
+            </select>
+            
+            <select id="level-filter" class="filter-select">
+                <option value="all">جميع المستويات</option>
+                <option value="1">المستوى 1</option>
+                <option value="2">المستوى 2</option>
+                <option value="3">المستوى 3</option>
+                <option value="4+">المستوى 4+</option>
+            </select>
+            
+            <button id="apply-filters"><i class="fas fa-filter"></i> تطبيق الفلتر</button>
+            <button id="export-report"><i class="fas fa-download"></i> تصدير التقرير</button>
+        </div>
+        
+        <div class="dashboard">
+            <div class="stat-card">
+                <i class="fas fa-users fa-2x"></i>
+                <div class="stat-number" id="total-members">0</div>
+                <div class="stat-label">إجمالي الأعضاء</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-user-plus fa-2x"></i>
+                <div class="stat-number" id="new-members">0</div>
+                <div class="stat-label">أعضاء جدد</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-layer-group fa-2x"></i>
+                <div class="stat-number" id="network-depth">0</div>
+                <div class="stat-label">أعمق مستوى</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-chart-line fa-2x"></i>
+                <div class="stat-number" id="growth-rate">0%</div>
+                <div class="stat-label">معدل النمو</div>
+            </div>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-bar"></i> نمو الشبكة خلال الفترة</h3>
+                <div class="chart-container">
+                    <canvas id="growth-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-pie"></i> توزيع المستويات</h3>
+                <div class="chart-container">
+                    <canvas id="levels-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3><i class="fas fa-user-clock"></i> نشاط الأعضاء</h3>
+                <div class="chart-container">
+                    <canvas id="activity-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3><i class="fas fa-trophy"></i> الترقيات خلال الفترة</h3>
+                <div class="chart-container">
+                    <canvas id="ranks-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-tables">
+            <div class="table-card">
+                <h3><i class="fas fa-table"></i> أعلى الأعضاء أداءً</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>المستوى</th>
+                                <th>عدد الإحالات</th>
+                                <th>النقاط</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-performers">
+                            <tr>
+                                <td colspan="5" class="loading-text">جاري تحميل البيانات...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="table-card">
+                <h3><i class="fas fa-history"></i> آخر الإحالات</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>المستوى</th>
+                                <th>تاريخ الانضمام</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-referrals">
+                            <tr>
+                                <td colspan="5" class="loading-text">جاري تحميل البيانات...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="reports.js"></script>
+</body>
+      </html>
