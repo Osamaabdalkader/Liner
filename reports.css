@@ -280,3 +280,104 @@ button:hover {
         height: 250px;
     }
   }
+
+
+    /* إضافة إلى ملف reports.css */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #777;
+    font-size: 1.1rem;
+}
+
+.loading i {
+    margin-left: 10px;
+}
+
+.alert {
+    padding: 15px;
+    margin: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.alert.error {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+}
+
+.alert i {
+    margin-left: 10px;
+}
+
+
+
+/* أنماط الفلاتر */
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.filter-group label {
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+#reset-filters {
+    background: var(--warning);
+}
+
+#save-filters {
+    background: var(--success);
+}
+
+/* تحسين التخطيط للفلاتر */
+.filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-bottom: 1px solid #eee;
+}
+
+@media (max-width: 768px) {
+    .filters {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-actions {
+        flex-direction: column;
+    }
+    
+    .filter-actions button {
+        width: 100%;
+    }
+}
+
+/* أنماط للتخصيص الإضافي */
+.filter-select, .filter-input {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.filter-input:focus, .filter-select:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
