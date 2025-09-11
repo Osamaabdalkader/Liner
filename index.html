@@ -59,6 +59,23 @@
             gap: 10px;
         }
         
+        .admin-badge {
+            background: var(--accent);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+        
+        .rank-badge {
+            background: var(--warning);
+            color: var(--dark);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
         .tabs {
             display: flex;
             background: #f0f0f0;
@@ -305,6 +322,63 @@
             border: 1px solid #f5c6cb;
         }
         
+        .rank-progress {
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .rank-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.5s;
+        }
+        
+        .ranks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .rank-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .rank-card.current {
+            border-color: var(--primary);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.2);
+        }
+        
+        .rank-card.achieved {
+            border-color: var(--success);
+        }
+        
+        .rank-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .rank-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .rank-requirement {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
         @media (max-width: 992px) {
             .network-container {
                 flex-direction: column;
@@ -396,6 +470,19 @@
         .referrals-table tr:hover {
             background: #f5f5f5;
         }
+        
+        .admin-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+        
+        .admin-section {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -403,7 +490,11 @@
         <header>
             <div class="user-info">
                 <img id="user-avatar" src="https://ui-avatars.com/api/?name=مستخدم&background=random" alt="صورة المستخدم" width="40" height="40" style="border-radius: 50%;">
-                <span id="username">مستخدم</span>
+                <div>
+                    <span id="username">مستخدم</span>
+                    <span id="user-rank" class="rank-badge">مرتبة 0</span>
+                    <span id="admin-badge" class="admin-badge" style="display: none;">مشرف</span>
+                </div>
             </div>
             <h1><i class="fas fa-network-wired"></i> نظام إدارة شبكة الإحالات</h1>
             <p>ادارة وتتبع شبكة الإحالات الخاصة بك بشكل كامل</p>
@@ -412,8 +503,10 @@
         <div class="tabs">
             <div class="tab active" data-tab="dashboard">لوحة التحكم</div>
             <div class="tab" data-tab="network">شبكتي</div>
+            <div class="tab" data-tab="ranks">الترقيات</div>
             <div class="tab" data-tab="management">إدارة المجموعة</div>
             <div class="tab" data-tab="reports">تقارير</div>
+            <div class="tab" data-tab="admin" id="admin-tab" style="display: none;">لوحة المشرف</div>
         </div>
         
         <div class="tab-content active" id="dashboard-tab">
@@ -442,6 +535,11 @@
                     <div class="stat-label">تاريخ الانضمام</div>
                 </div>
             </div>
+            
+            <div class="rank-progress">
+                <div class="rank-progress-bar" id="rank-progress-bar" style="width: 0%;"></div>
+            </div>
+            <p id="rank-progress-text">النقاط حتى الترقية التالية: <span id="points-to-next-rank">0</span> نقطة</p>
             
             <div class="referral-section">
                 <h3><i class="fas fa-share-alt"></i> رابط الإحالة الخاص بك</h3>
@@ -535,6 +633,27 @@
                     <i class="fas fa-spinner fa-spin fa-2x"></i>
                     <p>جاري تحميل شبكة الإحالات...</p>
                 </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="ranks-tab">
+            <h2><i class="fas fa-trophy"></i> نظام الترقيات</h2>
+            <p>هنا يمكنك مشاهدة مراتب الترقيات المتاحة ومتطلبات كل مرتبة.</p>
+            
+            <div class="ranks-container" id="ranks-container">
+                <!-- سيتم ملؤها ديناميكياً -->
+            </div>
+            
+            <h3>معلومات الترقية</h3>
+            <div class="rank-progress">
+                <div class="rank-progress-bar" id="detailed-rank-progress" style="width: 0%;"></div>
+            </div>
+            <p id="detailed-rank-text">النقاط حتى الترقية التالية: <span id="detailed-points-to-next">0</span> نقطة</p>
+            
+            <div id="team-requirements" style="margin-top: 20px;">
+                <h4>متطلبات الفريق للترقية القادمة</h4>
+                <p id="team-requirements-text">لا توجد متطلبات فريق للترقية الحالية.</p>
+                <ul id="qualified-members-list"></ul>
             </div>
         </div>
         
@@ -712,34 +831,93 @@
                 </div>
             </div>
         </div>
+        
+        <div class="tab-content" id="admin-tab">
+            <h2><i class="fas fa-crown"></i> لوحة المشرفين</h2>
+            <p>من هنا يمكنك إدارة النظام كمسؤول.</p>
+            
+            <div class="admin-panel">
+                <h3>إضافة نقاط للمستخدمين</h3>
+                <div class="form-group">
+                    <label>البريد الإلكتروني للمستخدم</label>
+                    <input type="email" id="admin-user-email" placeholder="أدخل البريد الإلكتروني">
+                </div>
+                <div class="form-group">
+                    <label>عدد النقاط للإضافة</label>
+                    <input type="number" id="admin-points-to-add" placeholder="أدخل عدد النقاط">
+                </div>
+                <button id="admin-add-points-btn">إضافة النقاط</button>
+                <div id="admin-add-points-result" class="alert" style="display: none; margin-top: 10px;"></div>
+            </div>
+            
+            <div class="admin-panel">
+                <h3>إدارة صلاحيات المشرفين</h3>
+                <div class="form-group">
+                    <label>البريد الإلكتروني للمستخدم</label>
+                    <input type="email" id="admin-promote-email" placeholder="أدخل البريد الإلكتروني">
+                </div>
+                <div class="form-group">
+                    <label>الإجراء</label>
+                    <select id="admin-promote-action">
+                        <option value="promote">ترقية إلى مشرف</option>
+                        <option value="demote">إزالة صلاحية المشرف</option>
+                    </select>
+                </div>
+                <button id="admin-promote-btn">تطبيق الإجراء</button>
+                <div id="admin-promote-result" class="alert" style="display: none; margin-top: 10px;"></div>
+            </div>
+            
+            <div class="admin-panel">
+                <h3>بحث المستخدمين</h3>
+                <div class="form-group">
+                    <label>بحث بالاسم أو البريد الإلكتروني</label>
+                    <input type="text" id="admin-search-term" placeholder="أدخل مصطلح البحث">
+                </div>
+                <div class="form-group">
+                    <label>فلتر حسب المرتبة</label>
+                    <select id="admin-rank-filter">
+                        <option value="">جميع المراتب</option>
+                        <option value="0">مرتبة 0</option>
+                        <option value="1">مرتبة 1</option>
+                        <option value="2">مرتبة 2</option>
+                        <option value="3">مرتبة 3</option>
+                        <option value="4">مرتبة 4</option>
+                        <option value="5">مرتبة 5</option>
+                        <option value="6">مرتبة 6</option>
+                        <option value="7">مرتبة 7</option>
+                        <option value="8">مرتبة 8</option>
+                        <option value="9">مرتبة 9</option>
+                        <option value="10">مرتبة 10</option>
+                    </select>
+                </div>
+                <button id="admin-search-btn">بحث</button>
+                
+                <div id="admin-search-results" style="margin-top: 20px;">
+                    <h4>نتائج البحث</h4>
+                    <div id="admin-users-list"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script type="module">
+        import { 
+            auth, database, 
+            signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut,
+            ref, set, push, onValue, update, get, child,
+            checkPromotions, checkTeamPromotions, addPointsAndCheckPromotion, setupRankChangeListener,
+            checkAdminStatus, getAllUsers, searchUsers, addPointsToUser, updateAdminStatus,
+            getUserIdFromReferralCode
+        } from './firebase.js';
 
-    <script>
-        // تهيئة Firebase مع بيانات المشروع
-        const firebaseConfig = {
-            apiKey: "AIzaSyAzYZMxqNmnLMGYnCyiJYPg2MbxZMt0co0",
-            authDomain: "osama-91b95.firebaseapp.com",
-            databaseURL: "https://osama-91b95-default-rtdb.firebaseio.com",
-            projectId: "osama-91b95",
-            storageBucket: "osama-91b95.appspot.com",
-            messagingSenderId: "118875905722",
-            appId: "1:118875905722:web:200bff1bd99db2c1caac83",
-            measurementId: "G-LEM5PVPJZC"
-        };
-        
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        
         // عناصر DOM
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
         const logoutBtn = document.getElementById('logout-btn');
         const copyLinkBtn = document.getElementById('copy-link-btn');
+        const adminTab = document.getElementById('admin-tab');
+        const adminBadge = document.getElementById('admin-badge');
         
         // إدارة Tabs
         tabs.forEach(tab => {
@@ -763,69 +941,129 @@
                 if (tabId === 'management') {
                     loadNetworkMembers();
                 }
+                
+                // إذا كان tab الترقيات، قم بتحميل بيانات الترقيات
+                if (tabId === 'ranks') {
+                    loadRanksData();
+                }
+                
+                // إذا كان tab المشرف، قم بتحميل بيانات المشرف
+                if (tabId === 'admin') {
+                    loadAdminData();
+                }
             });
         });
         
         // تحميل بيانات المستخدم
-        function loadUserData(userId) {
-            // تحميل بيانات المستخدم
-            firebase.database().ref('users/' + userId).once('value')
-                .then(snapshot => {
-                    const userData = snapshot.val();
-                    if (userData) {
-                        document.getElementById('username').textContent = userData.name;
-                        document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`;
-                        
-                        document.getElementById('points-count').textContent = userData.points || '0';
-                        document.getElementById('join-date').textContent = new Date(userData.joinDate).toLocaleDateString('ar-SA');
-                        
-                        // إنشاء رابط الإحالة
-                        const referralLink = `${window.location.origin}${window.location.pathname}?ref=${userData.referralCode}`;
-                        document.getElementById('referral-link').value = referralLink;
+        async function loadUserData(userId) {
+            try {
+                // تحميل بيانات المستخدم
+                const userRef = ref(database, 'users/' + userId);
+                const userSnapshot = await get(userRef);
+                const userData = userSnapshot.val();
+                
+                if (userData) {
+                    document.getElementById('username').textContent = userData.name || userData.email.split('@')[0];
+                    document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name || userData.email)}&background=random`;
+                    
+                    document.getElementById('points-count').textContent = userData.points || '0';
+                    document.getElementById('join-date').textContent = new Date(userData.joinDate).toLocaleDateString('ar-SA');
+                    document.getElementById('user-rank').textContent = `مرتبة ${userData.rank || 0}`;
+                    
+                    // تحديث شريط التقدم
+                    updateRankProgress(userData.rank || 0, userData.points || 0);
+                    
+                    // التحقق من صلاحية المشرف
+                    const isAdmin = await checkAdminStatus(userId);
+                    if (isAdmin) {
+                        adminBadge.style.display = 'inline-block';
+                        adminTab.style.display = 'flex';
+                    } else {
+                        adminBadge.style.display = 'none';
+                        adminTab.style.display = 'none';
                     }
-                });
+                    
+                    // إنشاء رابط الإحالة
+                    const referralLink = `${window.location.origin}${window.location.pathname}?ref=${userData.referralCode}`;
+                    document.getElementById('referral-link').value = referralLink;
+                    
+                    // تحميل الإحالات المباشرة
+                    loadDirectReferrals(userId);
+                    
+                    // إعداد مستمع لتغيرات المرتبة لفريق المستخدم
+                    setupRankChangeListener(userId);
+                }
+            } catch (error) {
+                console.error("Error loading user data:", error);
+            }
+        }
+        
+        // تحديث شريط تقدم المرتبة
+        function updateRankProgress(currentRank, currentPoints) {
+            const rankRequirements = [0, 100, 250, 500, 1000, 2000, 4000, 8000, 16000, 32000, 64000];
             
-            // تحميل الإحالات المباشرة
-            loadDirectReferrals(userId);
+            if (currentRank >= 10) {
+                document.getElementById('rank-progress-bar').style.width = '100%';
+                document.getElementById('points-to-next-rank').textContent = '0';
+                document.getElementById('rank-progress-text').textContent = 'لقد وصلت إلى أعلى مرتبة!';
+                return;
+            }
+            
+            const currentRequirement = rankRequirements[currentRank];
+            const nextRequirement = rankRequirements[currentRank + 1];
+            const pointsNeeded = nextRequirement - currentPoints;
+            const progress = ((currentPoints - currentRequirement) / (nextRequirement - currentRequirement)) * 100;
+            
+            document.getElementById('rank-progress-bar').style.width = `${Math.min(progress, 100)}%`;
+            document.getElementById('points-to-next-rank').textContent = pointsNeeded;
         }
         
         // تحميل الإحالات المباشرة
-        function loadDirectReferrals(userId) {
-            firebase.database().ref('userReferrals/' + userId).once('value')
-                .then(snapshot => {
-                    const referralsList = document.getElementById('recent-referrals');
-                    referralsList.innerHTML = '';
+        async function loadDirectReferrals(userId) {
+            try {
+                const referralsRef = ref(database, 'userReferrals/' + userId);
+                const referralsSnapshot = await get(referralsRef);
+                const referralsList = document.getElementById('recent-referrals');
+                referralsList.innerHTML = '';
+                
+                if (referralsSnapshot.exists()) {
+                    const referrals = referralsSnapshot.val();
+                    document.getElementById('referrals-count').textContent = Object.keys(referrals).length;
                     
-                    if (snapshot.exists()) {
-                        const referrals = snapshot.val();
-                        document.getElementById('referrals-count').textContent = Object.keys(referrals).length;
+                    // عرض آخر 5 إحالات فقط
+                    const recentReferrals = Object.entries(referrals).slice(0, 5);
+                    
+                    for (const [id, data] of recentReferrals) {
+                        const userRef = ref(database, 'users/' + id);
+                        const userSnapshot = await get(userRef);
                         
-                        // عرض آخر 5 إحالات فقط
-                        const recentReferrals = Object.entries(referrals).slice(0, 5);
-                        
-                        recentReferrals.forEach(([id, data]) => {
+                        if (userSnapshot.exists()) {
+                            const userData = userSnapshot.val();
                             const row = referralsList.insertRow();
                             row.innerHTML = `
-                                <td>${data.name}</td>
-                                <td>${data.email}</td>
+                                <td>${userData.name || userData.email.split('@')[0]}</td>
+                                <td>${userData.email}</td>
                                 <td><span class="user-badge level-0">مستوى 1</span></td>
-                                <td>${new Date(data.joinDate).toLocaleDateString('ar-SA')}</td>
+                                <td>${new Date(userData.joinDate).toLocaleDateString('ar-SA')}</td>
                                 <td><span style="color: green;">نشط</span></td>
                             `;
-                        });
-                    } else {
-                        referralsList.innerHTML = `
-                            <tr>
-                                <td colspan="5" style="text-align: center;">لا توجد إحالات حتى الآن</td>
-                            </tr>
-                        `;
+                        }
                     }
-                });
+                } else {
+                    referralsList.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center;">لا توجد إحالات حتى الآن</td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error("Error loading referrals:", error);
+            }
         }
         
         // تحميل شجرة الشبكة
-        function loadNetworkTree() {
-            const userId = firebase.auth().currentUser.uid;
+        async function loadNetworkTree() {
+            const userId = auth.currentUser.uid;
             const networkTree = document.getElementById('network-tree');
             
             networkTree.innerHTML = `
@@ -835,113 +1073,50 @@
                 </div>
             `;
             
-            // في تطبيق حقيقي، سنقوم بجلب البيانات من Firebase
-            // هنا سأعرض بيانات وهمية للتوضيح
-            
-            setTimeout(() => {
-                // بيانات وهمية للتوضيح
-                networkTree.innerHTML = `
+            try {
+                // جلب بيانات الشبكة من Firebase
+                const userRef = ref(database, 'users/' + userId);
+                const userSnapshot = await get(userRef);
+                
+                if (!userSnapshot.exists()) {
+                    networkTree.innerHTML = `<p style="text-align: center; padding: 30px;">لم يتم العثور على بيانات المستخدم</p>`;
+                    return;
+                }
+                
+                const userData = userSnapshot.val();
+                
+                // بناء شجرة الشبكة
+                let treeHTML = `
                     <div class="tree-node">
                         <div class="node-header">
                             <span>
-                                <i class="fas fa-user"></i> أنت (المستوى 0)
+                                <i class="fas fa-user"></i> ${userData.name || userData.email.split('@')[0]} (المرتبة ${userData.rank || 0})
                                 <span class="user-badge level-0">قائد الشبكة</span>
                             </span>
                             <i class="fas fa-chevron-down collapse-icon"></i>
                         </div>
                         <div class="node-content">
-                            <p>البريد: ${firebase.auth().currentUser.email}</p>
-                            <p>تاريخ الانضمام: ${new Date().toLocaleDateString('ar-SA')}</p>
-                            <p>عدد الإحالات المباشرة: 3</p>
+                            <p>البريد: ${userData.email}</p>
+                            <p>تاريخ الانضمام: ${new Date(userData.joinDate).toLocaleDateString('ar-SA')}</p>
+                            <p>النقاط: ${userData.points || 0}</p>
+                            <p>عدد الإحالات المباشرة: ...</p>
                         </div>
-                        <div class="node-children">
-                            <div class="tree-node">
-                                <div class="node-header">
-                                    <span>
-                                        <i class="fas fa-user"></i> أحمد محمد (المستوى 1)
-                                        <span class="user-badge level-1">مباشر</span>
-                                    </span>
-                                    <i class="fas fa-chevron-down collapse-icon"></i>
-                                </div>
-                                <div class="node-content">
-                                    <p>البريد: ahmed@example.com</p>
-                                    <p>تاريخ الانضمام: 15/08/2023</p>
-                                    <p>عدد الإحالات: 2</p>
-                                </div>
-                                <div class="node-children">
-                                    <div class="tree-node">
-                                        <div class="node-header">
-                                            <span>
-                                                <i class="fas fa-user"></i> سعيد عبدالله (المستوى 2)
-                                                <span class="user-badge level-2">غير مباشر</span>
-                                            </span>
-                                        </div>
-                                        <div class="node-content">
-                                            <p>البريد: saeed@example.com</p>
-                                            <p>تاريخ الانضمام: 20/08/2023</p>
-                                            <p>عدد الإحالات: 0</p>
-                                        </div>
-                                    </div>
-                                    <div class="tree-node">
-                                        <div class="node-header">
-                                            <span>
-                                                <i class="fas fa-user"></i> فاطمة أحمد (المستوى 2)
-                                                <span class="user-badge level-2">غير مباشر</span>
-                                            </span>
-                                        </div>
-                                        <div class="node-content">
-                                            <p>البريد: fatima@example.com</p>
-                                            <p>تاريخ الانضمام: 25/08/2023</p>
-                                            <p>عدد الإحالات: 1</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tree-node">
-                                <div class="node-header">
-                                    <span>
-                                        <i class="fas fa-user"></i> محمد علي (المستوى 1)
-                                        <span class="user-badge level-1">مباشر</span>
-                                    </span>
-                                </div>
-                                <div class="node-content">
-                                    <p>البريد: mohamed@example.com</p>
-                                    <p>تاريخ الانضمام: 10/08/2023</p>
-                                    <p>عدد الإحالات: 0</p>
-                                </div>
-                            </div>
-                            <div class="tree-node">
-                                <div class="node-header">
-                                    <span>
-                                        <i class="fas fa-user"></i> سارة خالد (المستوى 1)
-                                        <span class="user-badge level-1">مباشر</span>
-                                    </span>
-                                    <i class="fas fa-chevron-down collapse-icon"></i>
-                                </div>
-                                <div class="node-content">
-                                    <p>البريد: sara@example.com</p>
-                                    <p>تاريخ الانضمام: 05/08/2023</p>
-                                    <p>عدد الإحالات: 1</p>
-                                </div>
-                                <div class="node-children">
-                                    <div class="tree-node">
-                                        <div class="node-header">
-                                            <span>
-                                                <i class="fas fa-user"></i> خالد سعيد (المستوى 2)
-                                                <span class="user-badge level-2">غير مباشر</span>
-                                            </span>
-                                        </div>
-                                        <div class="node-content">
-                                            <p>البريد: khaled@example.com</p>
-                                            <p>تاريخ الانضمام: 12/08/2023</p>
-                                            <p>عدد الإحالات: 0</p>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="node-children" id="direct-referrals-node">
+                            <div style="text-align: center; padding: 15px;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>جاري تحميل الإحالات المباشرة...</p>
                             </div>
                         </div>
                     </div>
                 `;
+                
+                networkTree.innerHTML = treeHTML;
+                
+                // تحميل الإحالات المباشرة
+                await loadDirectReferralsForTree(userId, 'direct-referrals-node');
+                
+                // تحديث الإحصائيات
+                updateNetworkStats(userId);
                 
                 // إضافة أحداث للطي والفرد
                 document.querySelectorAll('.node-header').forEach(header => {
@@ -961,58 +1136,406 @@
                     });
                 });
                 
-                // تحديث الإحصائيات
+            } catch (error) {
+                console.error("Error loading network tree:", error);
+                networkTree.innerHTML = `<p style="text-align: center; padding: 30px; color: var(--danger);">حدث خطأ في تحميل الشبكة</p>`;
+            }
+        }
+        
+        // تحميل الإحالات المباشرة للشجرة
+        async function loadDirectReferralsForTree(userId, containerId) {
+            try {
+                const referralsRef = ref(database, 'userReferrals/' + userId);
+                const referralsSnapshot = await get(referralsRef);
+                const container = document.getElementById(containerId);
+                
+                if (!referralsSnapshot.exists()) {
+                    container.innerHTML = '<p style="text-align: center; padding: 10px;">لا توجد إحالات مباشرة</p>';
+                    return;
+                }
+                
+                const referrals = referralsSnapshot.val();
+                let referralsHTML = '';
+                
+                for (const memberId in referrals) {
+                    const memberRef = ref(database, 'users/' + memberId);
+                    const memberSnapshot = await get(memberRef);
+                    
+                    if (memberSnapshot.exists()) {
+                        const memberData = memberSnapshot.val();
+                        referralsHTML += `
+                            <div class="tree-node">
+                                <div class="node-header">
+                                    <span>
+                                        <i class="fas fa-user"></i> ${memberData.name || memberData.email.split('@')[0]} (المرتبة ${memberData.rank || 0})
+                                        <span class="user-badge level-1">مباشر</span>
+                                    </span>
+                                    <i class="fas fa-chevron-down collapse-icon"></i>
+                                </div>
+                                <div class="node-content">
+                                    <p>البريد: ${memberData.email}</p>
+                                    <p>تاريخ الانضمام: ${new Date(memberData.joinDate).toLocaleDateString('ar-SA')}</p>
+                                    <p>النقاط: ${memberData.points || 0}</p>
+                                    <p>عدد الإحالات: ...</p>
+                                </div>
+                                <div class="node-children" id="member-${memberId}-referrals">
+                                    <div style="text-align: center; padding: 15px;">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p>جاري تحميل الإحالات...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                container.innerHTML = referralsHTML;
+                
+                // تحميل إحالات المستوى الثاني لكل عضو
+                for (const memberId in referrals) {
+                    await loadDirectReferralsForTree(memberId, `member-${memberId}-referrals`);
+                }
+                
+            } catch (error) {
+                console.error("Error loading direct referrals for tree:", error);
+            }
+        }
+        
+        // تحديث إحصائيات الشبكة
+        async function updateNetworkStats(userId) {
+            try {
+                // هذه دمية للبيانات - في التطبيق الحقيقي، سيتم حساب هذه الإحصائيات من قاعدة البيانات
                 document.getElementById('total-members').textContent = '7';
                 document.getElementById('direct-referrals').textContent = '3';
                 document.getElementById('max-level').textContent = '2';
                 document.getElementById('active-today').textContent = '5';
+            } catch (error) {
+                console.error("Error updating network stats:", error);
+            }
+        }
+        
+        // تحميل بيانات الترقيات
+        async function loadRanksData() {
+            try {
+                const userId = auth.currentUser.uid;
+                const userRef = ref(database, 'users/' + userId);
+                const userSnapshot = await get(userRef);
                 
-            }, 1500);
+                if (!userSnapshot.exists()) return;
+                
+                const userData = userSnapshot.val();
+                const currentRank = userData.rank || 0;
+                const currentPoints = userData.points || 0;
+                
+                const ranksContainer = document.getElementById('ranks-container');
+                const rankRequirements = [0, 100, 250, 500, 1000, 2000, 4000, 8000, 16000, 32000, 64000];
+                const rankTitles = [
+                    "مبتدئ", "مساعد", "عضو نشط", "عضو متميز", "قائد فريق",
+                    "قائد متميز", "نائب مدير", "مدير", "نائب رئيس", "رئيس", "الرئيس الأعلى"
+                ];
+                
+                let ranksHTML = '';
+                
+                for (let i = 0; i <= 10; i++) {
+                    const isCurrent = i === currentRank;
+                    const isAchieved = i < currentRank;
+                    const pointsRequired = rankRequirements[i];
+                    
+                    ranksHTML += `
+                        <div class="rank-card ${isCurrent ? 'current' : ''} ${isAchieved ? 'achieved' : ''}">
+                            <div class="rank-icon">
+                                <i class="fas ${i >= 8 ? 'fa-crown' : i >= 5 ? 'fa-star' : 'fa-award'}"></i>
+                            </div>
+                            <div class="rank-title">المرتبة ${i}: ${rankTitles[i]}</div>
+                            <div class="rank-requirement">
+                                ${i === 0 ? 'مرحلة البدء' : `${pointsRequired} نقطة`}
+                            </div>
+                            ${isCurrent ? '<div style="color: var(--primary); margin-top: 5px;">(المرتبة الحالية)</div>' : ''}
+                            ${isAchieved ? '<div style="color: var(--success); margin-top: 5px;">(تم تحقيقها)</div>' : ''}
+                        </div>
+                    `;
+                }
+                
+                ranksContainer.innerHTML = ranksHTML;
+                
+                // تحديث شريط التقدم المفصل
+                if (currentRank < 10) {
+                    const currentRequirement = rankRequirements[currentRank];
+                    const nextRequirement = rankRequirements[currentRank + 1];
+                    const progress = ((currentPoints - currentRequirement) / (nextRequirement - currentRequirement)) * 100;
+                    
+                    document.getElementById('detailed-rank-progress').style.width = `${Math.min(progress, 100)}%`;
+                    document.getElementById('detailed-points-to-next').textContent = nextRequirement - currentPoints;
+                } else {
+                    document.getElementById('detailed-rank-progress').style.width = '100%';
+                    document.getElementById('detailed-points-to-next').textContent = '0';
+                    document.getElementById('detailed-rank-text').textContent = 'لقد وصلت إلى أعلى مرتبة!';
+                }
+                
+                // تحميل متطلبات الفريق للترقية القادمة
+                if (currentRank < 10) {
+                    await loadTeamRequirements(userId, currentRank);
+                } else {
+                    document.getElementById('team-requirements-text').textContent = 'لقد وصلت إلى أعلى مرتبة ولا توجد متطلبات فريق إضافية.';
+                }
+                
+            } catch (error) {
+                console.error("Error loading ranks data:", error);
+            }
+        }
+        
+        // تحميل متطلبات الفريق للترقية
+        async function loadTeamRequirements(userId, currentRank) {
+            try {
+                const nextRank = currentRank + 1;
+                const requiredTeamRank = nextRank - 1;
+                
+                document.getElementById('team-requirements-text').textContent = 
+                    `للترقية إلى المرتبة ${nextRank}، تحتاج إلى 3 أعضاء من فريقك على الأقل بلغوا المرتبة ${requiredTeamRank} أو أعلى.`;
+                
+                // الحصول على فريق المستخدم
+                const teamRef = ref(database, 'userReferrals/' + userId);
+                const teamSnapshot = await get(teamRef);
+                
+                if (!teamSnapshot.exists()) {
+                    document.getElementById('qualified-members-list').innerHTML = '<li>لا يوجد أعضاء في فريقك بعد</li>';
+                    return;
+                }
+                
+                const teamMembers = teamSnapshot.val();
+                let qualifiedMembers = 0;
+                let qualifiedMembersHTML = '';
+                
+                for (const memberId in teamMembers) {
+                    const memberRef = ref(database, 'users/' + memberId);
+                    const memberSnapshot = await get(memberRef);
+                    
+                    if (memberSnapshot.exists()) {
+                        const memberData = memberSnapshot.val();
+                        const memberRank = memberData.rank || 0;
+                        
+                        if (memberRank >= requiredTeamRank) {
+                            qualifiedMembers++;
+                            qualifiedMembersHTML += `<li>${memberData.name || memberData.email} (المرتبة ${memberRank})</li>`;
+                        }
+                    }
+                }
+                
+                if (qualifiedMembers > 0) {
+                    document.getElementById('qualified-members-list').innerHTML = qualifiedMembersHTML;
+                    document.getElementById('team-requirements-text').textContent += 
+                        ` <strong>(${qualifiedMembers}/3 أعضاء مؤهلين)</strong>`;
+                } else {
+                    document.getElementById('qualified-members-list').innerHTML = '<li>لا يوجد أعضاء مؤهلين بعد</li>';
+                }
+                
+            } catch (error) {
+                console.error("Error loading team requirements:", error);
+            }
+        }
+        
+        // تحميل بيانات المشرف
+        async function loadAdminData() {
+            // إعداد معالجات الأحداث لأزرار المشرف
+            document.getElementById('admin-add-points-btn').addEventListener('click', adminAddPoints);
+            document.getElementById('admin-promote-btn').addEventListener('click', adminPromoteUser);
+            document.getElementById('admin-search-btn').addEventListener('click', adminSearchUsers);
+        }
+        
+        // معالجة إضافة النقاط من قبل المشرف
+        async function adminAddPoints() {
+            const email = document.getElementById('admin-user-email').value;
+            const points = parseInt(document.getElementById('admin-points-to-add').value);
+            const resultDiv = document.getElementById('admin-add-points-result');
+            
+            if (!email || !points || points <= 0) {
+                resultDiv.textContent = 'يرجى إدخال بريد إلكتروني صحيح وعدد نقاط صحيح';
+                resultDiv.className = 'alert alert-error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                // البحث عن المستخدم بالبريد الإلكتروني
+                const users = await searchUsers(email, null);
+                
+                if (users.length === 0) {
+                    resultDiv.textContent = 'لم يتم العثور على مستخدم بهذا البريد الإلكتروني';
+                    resultDiv.className = 'alert alert-error';
+                    resultDiv.style.display = 'block';
+                    return;
+                }
+                
+                const userId = users[0].id;
+                const currentUserId = auth.currentUser.uid;
+                
+                // إضافة النقاط
+                await addPointsToUser(userId, points, currentUserId);
+                
+                resultDiv.textContent = `تم إضافة ${points} نقطة للمستخدم ${email} بنجاح`;
+                resultDiv.className = 'alert alert-success';
+                resultDiv.style.display = 'block';
+                
+                // مسح الحقول
+                document.getElementById('admin-user-email').value = '';
+                document.getElementById('admin-points-to-add').value = '';
+                
+            } catch (error) {
+                console.error("Error adding points:", error);
+                resultDiv.textContent = `خطأ: ${error.message}`;
+                resultDiv.className = 'alert alert-error';
+                resultDiv.style.display = 'block';
+            }
+        }
+        
+        // معالجة ترقية/إزالة صلاحية المشرف
+        async function adminPromoteUser() {
+            const email = document.getElementById('admin-promote-email').value;
+            const action = document.getElementById('admin-promote-action').value;
+            const resultDiv = document.getElementById('admin-promote-result');
+            
+            if (!email) {
+                resultDiv.textContent = 'يرجى إدخال بريد إلكتروني صحيح';
+                resultDiv.className = 'alert alert-error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                // البحث عن المستخدم بالبريد الإلكتروني
+                const users = await searchUsers(email, null);
+                
+                if (users.length === 0) {
+                    resultDiv.textContent = 'لم يتم العثور على مستخدم بهذا البريد الإلكتروني';
+                    resultDiv.className = 'alert alert-error';
+                    resultDiv.style.display = 'block';
+                    return;
+                }
+                
+                const userId = users[0].id;
+                const currentUserId = auth.currentUser.uid;
+                const isPromote = action === 'promote';
+                
+                // تحديث صلاحية المشرف
+                await updateAdminStatus(userId, isPromote, currentUserId);
+                
+                resultDiv.textContent = `تم ${isPromote ? 'ترقية' : 'إزالة صلاحية'} المشرف للمستخدم ${email} بنجاح`;
+                resultDiv.className = 'alert alert-success';
+                resultDiv.style.display = 'block';
+                
+                // مسح الحقول
+                document.getElementById('admin-promote-email').value = '';
+                
+            } catch (error) {
+                console.error("Error updating admin status:", error);
+                resultDiv.textContent = `خطأ: ${error.message}`;
+                resultDiv.className = 'alert alert-error';
+                resultDiv.style.display = 'block';
+            }
+        }
+        
+        // معالجة بحث المستخدمين من قبل المشرف
+        async function adminSearchUsers() {
+            const searchTerm = document.getElementById('admin-search-term').value;
+            const rankFilter = document.getElementById('admin-rank-filter').value;
+            const usersList = document.getElementById('admin-users-list');
+            
+            try {
+                const users = await searchUsers(searchTerm, rankFilter);
+                
+                if (users.length === 0) {
+                    usersList.innerHTML = '<p>لم يتم العثور على مستخدمين</p>';
+                    return;
+                }
+                
+                let usersHTML = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">';
+                
+                users.forEach(user => {
+                    usersHTML += `
+                        <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            <h4>${user.name || 'بدون اسم'} ${user.isAdmin ? '<span style="color: var(--accent);">(مشرف)</span>' : ''}</h4>
+                            <p>البريد: ${user.email}</p>
+                            <p>المرتبة: ${user.rank || 0}</p>
+                            <p>النقاط: ${user.points || 0}</p>
+                            <p>تاريخ الانضمام: ${new Date(user.joinDate).toLocaleDateString('ar-SA')}</p>
+                        </div>
+                    `;
+                });
+                
+                usersHTML += '</div>';
+                usersList.innerHTML = usersHTML;
+                
+            } catch (error) {
+                console.error("Error searching users:", error);
+                usersList.innerHTML = '<p>حدث خطأ أثناء البحث</p>';
+            }
         }
         
         // تحميل أعضاء الشبكة للتبويب إدارة المجموعة
-        function loadNetworkMembers() {
+        async function loadNetworkMembers() {
             const tbody = document.getElementById('network-members');
             
-            // بيانات وهمية للتوضيح
-            const members = [
-                { name: 'أحمد محمد', email: 'ahmed@example.com', level: 1, joinDate: '15/08/2023', referrals: 2, points: 150 },
-                { name: 'سارة خالد', email: 'sara@example.com', level: 1, joinDate: '05/08/2023', referrals: 1, points: 100 },
-                { name: 'محمد علي', email: 'mohamed@example.com', level: 1, joinDate: '10/08/2023', referrals: 0, points: 50 },
-                { name: 'سعيد عبدالله', email: 'saeed@example.com', level: 2, joinDate: '20/08/2023', referrals: 0, points: 30 },
-                { name: 'فاطمة أحمد', email: 'fatima@example.com', level: 2, joinDate: '25/08/2023', referrals: 1, points: 70 },
-                { name: 'خالد سعيد', email: 'khaled@example.com', level: 2, joinDate: '12/08/2023', referrals: 0, points: 20 }
-            ];
-            
-            tbody.innerHTML = '';
-            
-            members.forEach(member => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${member.name}</td>
-                    <td>${member.email}</td>
-                    <td><span class="user-badge level-${member.level-1}">مستوى ${member.level}</span></td>
-                    <td>${member.joinDate}</td>
-                    <td>${member.referrals}</td>
-                    <td>${member.points}</td>
-                    <td>
-                        <button style="padding: 5px 10px; font-size: 14px;"><i class="fas fa-envelope"></i></button>
-                        <button style="padding: 5px 10px; font-size: 14px;"><i class="fas fa-chart-line"></i></button>
-                    </td>
+            try {
+                const userId = auth.currentUser.uid;
+                const referralsRef = ref(database, 'userReferrals/' + userId);
+                const referralsSnapshot = await get(referralsRef);
+                
+                if (!referralsSnapshot.exists()) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center;">لا توجد إحالات حتى الآن</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                const referrals = referralsSnapshot.val();
+                tbody.innerHTML = '';
+                
+                for (const memberId in referrals) {
+                    const memberRef = ref(database, 'users/' + memberId);
+                    const memberSnapshot = await get(memberRef);
+                    
+                    if (memberSnapshot.exists()) {
+                        const memberData = memberSnapshot.val();
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${memberData.name || memberData.email.split('@')[0]}</td>
+                            <td>${memberData.email}</td>
+                            <td><span class="user-badge level-0">مستوى 1</span></td>
+                            <td>${new Date(memberData.joinDate).toLocaleDateString('ar-SA')}</td>
+                            <td>${Object.keys(memberData.referrals || {}).length}</td>
+                            <td>${memberData.points || 0}</td>
+                            <td>
+                                <button style="padding: 5px 10px; font-size: 14px;"><i class="fas fa-envelope"></i></button>
+                                <button style="padding: 5px 10px; font-size: 14px;"><i class="fas fa-chart-line"></i></button>
+                            </td>
+                        `;
+                    }
+                }
+                
+                // تحديث الإحصائيات
+                document.getElementById('top-contributor').textContent = 'أحمد محمد (150 نقطة)';
+                document.getElementById('last-activity').textContent = 'اليوم الساعة 15:30';
+                document.getElementById('growth-rate').textContent = '15%';
+                
+            } catch (error) {
+                console.error("Error loading network members:", error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center;">حدث خطأ في تحميل البيانات</td>
+                    </tr>
                 `;
-            });
-            
-            // تحديث الإحصائيات
-            document.getElementById('top-contributor').textContent = 'أحمد محمد (150 نقطة)';
-            document.getElementById('last-activity').textContent = 'اليوم الساعة 15:30';
-            document.getElementById('growth-rate').textContent = '15%';
+            }
         }
         
         // تسجيل الخروج
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
-                firebase.auth().signOut().then(() => {
+                signOut(auth).then(() => {
                     window.location.href = 'login.html';
+                }).catch((error) => {
+                    console.error("Error signing out:", error);
                 });
             });
         }
@@ -1051,9 +1574,9 @@
         }
         
         // التحقق من وجود مستخدم مسجل دخوله
-        firebase.auth().onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                loadUserData(user.uid);
+                await loadUserData(user.uid);
                 document.getElementById('levels-count').textContent = '3'; // قيمة وهمية للتوضيح
             } else {
                 // إذا لم يكن المستخدم مسجلاً، توجيهه إلى تسجيل الدخول
