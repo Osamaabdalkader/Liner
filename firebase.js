@@ -8,7 +8,8 @@ import {
   onAuthStateChanged, 
   signOut,
   setPersistence,
-  browserSessionPersistence
+  browserSessionPersistence,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 import { 
   getDatabase, 
@@ -90,6 +91,51 @@ const checkPromotions = async (userId) => {
     if (currentRank === 0 && userPoints >= 100) {
       newRank = 1;
       console.log(`المستخدم مؤهل للترقية إلى المرتبة 1`);
+    }
+    // المرتبة 2: 250 نقطة
+    else if (currentRank === 1 && userPoints >= 250) {
+      newRank = 2;
+      console.log(`المستخدم مؤهل للترقية إلى المرتبة 2`);
+    }
+    // المرتبة 3: 500 نقطة
+    else if (currentRank === 2 && userPoints >= 500) {
+      newRank = 3;
+      console.log(`المستخدم مؤهل للترقية إلى المرتبة 3`);
+    }
+    // المرتبة 4: 1000 نقطة
+    else if (currentRank === 3 && userPoints >= 1000) {
+      newRank = 4;
+      console.log(`المستخدم مؤهل للترقية إلى المرتبة 4`);
+    }
+    // المرتبة 5: 2000 نقطة
+    else if (currentRank === 4 && userPoints >= 2000) {
+      newRank = 5;
+      console.log(`المستخدم مؤهل للترقية إلى المرتبة 5`);
+    }
+    // المرتبة 6: 4000 نقطة
+    else if (currentRank === 5 && userPoints >= 4000) {
+      newRank = 6;
+      console.log(`المستخدم مؤهل للترقية إلى المرتبة 6`);
+    }
+    // المرتبة 7: 8000 نقطة
+    else if (currentRank === 6 && userPoints >= 8000) {
+      newRank = 7;
+      console.log(`المستخدم مؤهل للترقية إلى المرتبة 7`);
+    }
+    // المرتبة 8: 16000 نقطة
+    else if (currentRank === 7 && userPoints >= 16000) {
+      newRank = 8;
+      console.log(`المستخدم مؤهل للترقية إلى المرتبة 8`);
+    }
+    // المرتبة 9: 32000 نقطة
+    else if (currentRank === 8 && userPoints >= 32000) {
+      newRank = 9;
+      console.log(`المستخدم مؤهل للترقية إلى المرتبة 9`);
+    }
+    // المرتبة 10: 64000 نقطة
+    else if (currentRank === 9 && userPoints >= 64000) {
+      newRank = 10;
+      console.log(`المستخدم مؤهل للترقية إلى المرتبة 10`);
     }
     
     // إذا تمت ترقية المستخدم، تحديث البيانات
@@ -509,7 +555,7 @@ const updateAdminStatus = async (userId, isAdmin, currentAdminId) => {
 // تصدير الكائنات لاستخدامها في ملفات أخرى
 export { 
   app, analytics, auth, database, storage,
-  signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut,
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail,
   ref, set, push, onValue, serverTimestamp, update, remove, query, orderByChild, equalTo, get, child,
   storageRef, uploadBytesResumable, getDownloadURL,
   checkPromotions, checkTeamPromotions, addPointsAndCheckPromotion, setupRankChangeListener,
