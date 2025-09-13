@@ -100,20 +100,40 @@ header {
 }
 
 .filters {
-    display: flex;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
     padding: 20px;
     background: #f9f9f9;
     border-bottom: 1px solid #eee;
-    flex-wrap: wrap;
 }
 
-.filter-select {
-    flex: 1;
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.filter-select, .filter-input {
     padding: 10px 15px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    min-width: 150px;
+    font-size: 14px;
+}
+
+.filter-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 button {
@@ -137,6 +157,15 @@ button:hover {
 
 #export-report {
     background: var(--success);
+}
+
+#reset-filters {
+    background: var(--warning);
+    color: var(--dark);
+}
+
+#save-filters {
+    background: var(--accent);
 }
 
 .dashboard {
@@ -265,7 +294,7 @@ button:hover {
     }
     
     .filters {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
     
     .charts-container {
@@ -279,4 +308,12 @@ button:hover {
     .chart-container {
         height: 250px;
     }
-}
+    
+    .filter-actions {
+        flex-direction: column;
+    }
+    
+    .filter-actions button {
+        width: 100%;
+    }
+    }
