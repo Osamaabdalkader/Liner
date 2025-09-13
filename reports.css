@@ -33,6 +33,12 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    margin-bottom: 10px;
+}
+
+.page-header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
 }
 
 /* تصميم الهيدر (مطابق للصفحة الرئيسية) */
@@ -227,6 +233,17 @@ header {
 .user-rank {
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.9rem;
+    margin-right: 10px;
+}
+
+.admin-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    background: linear-gradient(90deg, #d4af37, #f9d71c);
+    color: #0f2027;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
 }
 
 /* إحصائيات */
@@ -292,7 +309,7 @@ header {
     color: #2ecc71;
 }
 
-/* بطاقات الفلاتر */
+/* الفلاتر */
 .filters-card {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
@@ -306,6 +323,9 @@ header {
 .card-header {
     padding: 20px;
     border-bottom: 1px solid rgba(76, 201, 240, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     background: rgba(15, 32, 39, 0.5);
 }
 
@@ -326,7 +346,6 @@ header {
     padding: 20px;
 }
 
-/* الفلاتر */
 .filters-container {
     display: flex;
     flex-wrap: wrap;
@@ -370,7 +389,7 @@ header {
 }
 
 .btn {
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 8px;
     border: none;
     font-weight: 600;
@@ -380,6 +399,7 @@ header {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    font-size: 0.9rem;
 }
 
 .btn.primary {
@@ -389,6 +409,7 @@ header {
 
 .btn.primary:hover {
     background: linear-gradient(90deg, #3a86ff, #4cc9f0);
+    transform: translateY(-2px);
 }
 
 .btn.secondary {
@@ -398,19 +419,11 @@ header {
 }
 
 .btn.secondary:hover {
-    background: rgba(76, 201, 240, 0.1);
+    background: rgba(76, 201, 240, 0.2);
+    transform: translateY(-2px);
 }
 
-.btn.success {
-    background: linear-gradient(90deg, #2ecc71, #27ae60);
-    color: white;
-}
-
-.btn.success:hover {
-    background: linear-gradient(90deg, #27ae60, #2ecc71);
-}
-
-/* الرسوم البيانية */
+/* المخططات البيانية */
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -428,8 +441,8 @@ header {
 }
 
 .chart-container {
-    padding: 15px;
     height: 300px;
+    padding: 15px;
 }
 
 /* الجداول */
@@ -437,6 +450,7 @@ header {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
+    margin-bottom: 25px;
 }
 
 .table-card {
@@ -449,7 +463,6 @@ header {
 }
 
 .table-container {
-    padding: 15px;
     overflow-x: auto;
 }
 
@@ -486,7 +499,7 @@ header {
 .loading-text {
     text-align: center;
     color: rgba(255, 255, 255, 0.7);
-    padding: 2rem;
+    padding: 2rem !important;
 }
 
 /* تصميم التذييل (مطابق للصفحة الرئيسية) */
@@ -576,6 +589,13 @@ footer {
 }
 
 /* تصميم متجاوب */
+@media (max-width: 992px) {
+    .charts-grid,
+    .tables-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 140px 10px 110px;
@@ -654,15 +674,7 @@ footer {
     }
     
     .filter-actions {
-        flex-direction: column;
-    }
-    
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .tables-grid {
-        grid-template-columns: 1fr;
+        justify-content: center;
     }
 }
 
@@ -710,7 +722,7 @@ footer {
         margin-bottom: 8px;
     }
     
-    .user-rank {
+    .user-rank, .admin-badge {
         font-size: 0.8rem;
     }
     
@@ -744,20 +756,12 @@ footer {
         padding: 3px 8px;
     }
     
-    .card-header {
-        padding: 12px 15px;
+    .filter-actions {
+        flex-direction: column;
     }
     
-    .card-header h2 {
-        font-size: 1rem;
-    }
-    
-    .card-body {
-        padding: 15px;
-    }
-    
-    .chart-container {
-        height: 250px;
+    .btn {
+        width: 100%;
     }
     
     .footer-icons .icon span {
