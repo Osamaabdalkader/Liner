@@ -112,20 +112,40 @@
         }
 
         .filters {
-            display: flex;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
             padding: 20px;
             background: #f9f9f9;
             border-bottom: 1px solid #eee;
-            flex-wrap: wrap;
         }
 
-        .filter-select {
-            flex: 1;
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .filter-select, .filter-input {
             padding: 10px 15px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            min-width: 150px;
+            font-size: 14px;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
         }
 
         button {
@@ -149,6 +169,15 @@
 
         #export-report {
             background: var(--success);
+        }
+
+        #reset-filters {
+            background: var(--warning);
+            color: var(--dark);
+        }
+
+        #save-filters {
+            background: var(--accent);
         }
 
         .dashboard {
@@ -277,7 +306,7 @@
             }
             
             .filters {
-                flex-direction: column;
+                grid-template-columns: 1fr;
             }
             
             .charts-container {
@@ -290,6 +319,14 @@
             
             .chart-container {
                 height: 250px;
+            }
+            
+            .filter-actions {
+                flex-direction: column;
+            }
+            
+            .filter-actions button {
+                width: 100%;
             }
         }
     </style>
@@ -318,23 +355,65 @@
         </nav>
         
         <div class="filters">
-            <select id="time-filter" class="filter-select">
-                <option value="7">آخر 7 أيام</option>
-                <option value="30" selected>آخر 30 يومًا</option>
-                <option value="90">آخر 90 يومًا</option>
-                <option value="365">آخر سنة</option>
-            </select>
+            <div class="filter-group">
+                <label for="time-filter">الفترة الزمنية:</label>
+                <select id="time-filter" class="filter-select">
+                    <option value="7">آخر 7 أيام</option>
+                    <option value="30" selected>آخر 30 يومًا</option>
+                    <option value="90">آخر 90 يومًا</option>
+                    <option value="180">آخر 6 أشهر</option>
+                    <option value="365">آخر سنة</option>
+                    <option value="custom">مخصص</option>
+                </select>
+            </div>
             
-            <select id="level-filter" class="filter-select">
-                <option value="all">جميع المستويات</option>
-                <option value="1">المستوى 1</option>
-                <option value="2">المستوى 2</option>
-                <option value="3">المستوى 3</option>
-                <option value="4+">المستوى 4+</option>
-            </select>
+            <div class="filter-group" id="custom-date-range" style="display: none;">
+                <label for="start-date">من:</label>
+                <input type="date" id="start-date" class="filter-input">
+                
+                <label for="end-date">إلى:</label>
+                <input type="date" id="end-date" class="filter-input">
+            </div>
             
-            <button id="apply-filters"><i class="fas fa-filter"></i> تطبيق الفلتر</button>
-            <button id="export-report"><i class="fas fa-download"></i> تصدير التقرير</button>
+            <div class="filter-group">
+                <label for="level-filter">المستوى:</label>
+                <select id="level-filter" class="filter-select">
+                    <option value="all">جميع المستويات</option>
+                    <option value="1">المستوى 1</option>
+                    <option value="2">المستوى 2</option>
+                    <option value="3">المستوى 3</option>
+                    <option value="4">المستوى 4+</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="rank-filter">المرتبة:</label>
+                <select id="rank-filter" class="filter-select">
+                    <option value="all">جميع المراتب</option>
+                    <option value="0">مرتبة 0</option>
+                    <option value="1">مرتبة 1</option>
+                    <option value="2">مرتبة 2</option>
+                    <option value="3">مرتبة 3</option>
+                    <option value="4">مرتبة 4</option>
+                    <option value="5">مرتبة 5+</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="activity-filter">النشاط:</label>
+                <select id="activity-filter" class="filter-select">
+                    <option value="all">جميع الأعضاء</option>
+                    <option value="active">نشط فقط</option>
+                    <option value="inactive">غير نشط</option>
+                </select>
+            </div>
+            
+            <div class="filter-actions">
+                <button id="apply-filters"><i class="fas fa-filter"></i> تطبيق الفلتر</button>
+                <button id="reset-filters"><i class="fas fa-redo"></i> إعادة تعيين</button>
+                <button id="save-filters"><i class="fas fa-save"></i> حفظ التفضيلات</button>
+                <button id="export-report"><i class="fas fa-download"></i> تصدير التقرير</button>
+            </div>
         </div>
         
         <div class="dashboard">
@@ -459,6 +538,15 @@
         let currentUserId = null;
         let charts = {};
         let userData = {};
+        let allMembers = [];
+        let filterSettings = {
+            timeFilter: '30',
+            levelFilter: 'all',
+            rankFilter: 'all',
+            activityFilter: 'all',
+            startDate: null,
+            endDate: null
+        };
 
         // تهيئة الصفحة عند تحميلها
         document.addEventListener('DOMContentLoaded', function() {
@@ -469,6 +557,7 @@
                     await loadUserData();
                     await loadReportsData();
                     setupEventListeners();
+                    loadFilterPreferences();
                 } else {
                     // توجيه المستخدم إلى صفحة تسجيل الدخول إذا لم يكن مسجلاً
                     window.location.href = 'login.html';
@@ -504,41 +593,90 @@
         // تحميل بيانات التقارير
         async function loadReportsData() {
             try {
+                // الحصول على جميع أعضاء الشبكة
+                allMembers = await getAllNetworkMembers(currentUserId);
+                
+                // تطبيق الفلاتر الحالية على البيانات
+                const filteredMembers = applyFilters(allMembers);
+                
                 // تحميل إحصائيات الشبكة
-                await loadNetworkStats();
+                loadNetworkStats(filteredMembers);
                 
                 // تحميل الرسوم البيانية
-                await loadCharts();
+                loadCharts(filteredMembers);
                 
                 // تحميل الجداول
-                await loadDataTables();
+                loadDataTables(filteredMembers);
                 
             } catch (error) {
                 console.error("Error loading reports data:", error);
             }
         }
 
-        // تحميل إحصائيات الشبكة
-        async function loadNetworkStats() {
-            try {
-                // الحصول على جميع أعضاء الشبكة
-                const allMembers = await getAllNetworkMembers(currentUserId);
+        // تطبيق الفلاتر على البيانات
+        function applyFilters(members) {
+            let filtered = [...members];
+            
+            // تطبيق فلتر الوقت
+            const now = new Date();
+            let startDate = new Date();
+            
+            if (filterSettings.timeFilter === 'custom' && filterSettings.startDate && filterSettings.endDate) {
+                startDate = new Date(filterSettings.startDate);
+                const endDate = new Date(filterSettings.endDate);
                 
-                // حساب الإحصائيات
-                const totalMembers = allMembers.length;
-                const newMembers = calculateNewMembers(allMembers);
-                const networkDepth = calculateNetworkDepth(allMembers);
-                const growthRate = calculateGrowthRate(allMembers);
+                filtered = filtered.filter(member => {
+                    const joinDate = new Date(member.joinDate);
+                    return joinDate >= startDate && joinDate <= endDate;
+                });
+            } else {
+                const days = parseInt(filterSettings.timeFilter);
+                startDate.setDate(startDate.getDate() - days);
                 
-                // تحديث واجهة المستخدم
-                document.getElementById('total-members').textContent = totalMembers;
-                document.getElementById('new-members').textContent = newMembers;
-                document.getElementById('network-depth').textContent = networkDepth;
-                document.getElementById('growth-rate').textContent = `${growthRate}%`;
-                
-            } catch (error) {
-                console.error("Error loading network stats:", error);
+                filtered = filtered.filter(member => {
+                    const joinDate = new Date(member.joinDate);
+                    return joinDate >= startDate;
+                });
             }
+            
+            // تطبيق فلتر المستوى
+            if (filterSettings.levelFilter !== 'all') {
+                const level = parseInt(filterSettings.levelFilter);
+                filtered = filtered.filter(member => member.level === level);
+            }
+            
+            // تطبيق فلتر المرتبة
+            if (filterSettings.rankFilter !== 'all') {
+                const rank = parseInt(filterSettings.rankFilter);
+                if (filterSettings.rankFilter === '5') {
+                    filtered = filtered.filter(member => (member.rank || 0) >= 5);
+                } else {
+                    filtered = filtered.filter(member => (member.rank || 0) === rank);
+                }
+            }
+            
+            // تطبيق فلتر النشاط (هذا مثال مبسط، يحتاج إلى بيانات نشاط حقيقية)
+            if (filterSettings.activityFilter !== 'all') {
+                const today = new Date();
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                
+                if (filterSettings.activityFilter === 'active') {
+                    // نفترض أن النشاط يتم تحديده بآخر مرة سجل فيها المستخدم دخوله
+                    // في التطبيق الحقيقي، تحتاج إلى بيانات آخر نشاط لكل مستخدم
+                    filtered = filtered.filter(member => {
+                        const lastActive = member.lastActive ? new Date(member.lastActive) : new Date(member.joinDate);
+                        return lastActive >= thirtyDaysAgo;
+                    });
+                } else {
+                    filtered = filtered.filter(member => {
+                        const lastActive = member.lastActive ? new Date(member.lastActive) : new Date(member.joinDate);
+                        return lastActive < thirtyDaysAgo;
+                    });
+                }
+            }
+            
+            return filtered;
         }
 
         // الحصول على جميع أعضاء الشبكة
@@ -577,6 +715,21 @@
             }
         }
 
+        // تحميل إحصائيات الشبكة
+        function loadNetworkStats(members) {
+            // حساب الإحصائيات
+            const totalMembers = members.length;
+            const newMembers = calculateNewMembers(members);
+            const networkDepth = calculateNetworkDepth(members);
+            const growthRate = calculateGrowthRate(members);
+            
+            // تحديث واجهة المستخدم
+            document.getElementById('total-members').textContent = totalMembers;
+            document.getElementById('new-members').textContent = newMembers;
+            document.getElementById('network-depth').textContent = networkDepth;
+            document.getElementById('growth-rate').textContent = `${growthRate}%`;
+        }
+
         // حساب الأعضاء الجدد (آخر 30 يومًا)
         function calculateNewMembers(members) {
             const thirtyDaysAgo = new Date();
@@ -590,7 +743,7 @@
 
         // حساب أعمق مستوى في الشبكة
         function calculateNetworkDepth(members) {
-            return Math.max(...members.map(member => member.level), 0);
+            return members.length > 0 ? Math.max(...members.map(member => member.level), 0) : 0;
         }
 
         // حساب معدل النمو (نسبة الزيادة في الأعضاء خلال آخر 30 يومًا مقارنة بالـ 30 يومًا السابقة)
@@ -619,26 +772,18 @@
         }
 
         // تحميل الرسوم البيانية
-        async function loadCharts() {
-            try {
-                // الحصول على بيانات للرسوم البيانية
-                const allMembers = await getAllNetworkMembers(currentUserId);
-                
-                // رسم مخطط نمو الشبكة
-                renderGrowthChart(allMembers);
-                
-                // رسم مخطط توزيع المستويات
-                renderLevelsChart(allMembers);
-                
-                // رسم مخطط نشاط الأعضاء
-                renderActivityChart(allMembers);
-                
-                // رسم مخطط الترقيات
-                renderRanksChart(allMembers);
-                
-            } catch (error) {
-                console.error("Error loading charts:", error);
-            }
+        function loadCharts(members) {
+            // رسم مخطط نمو الشبكة
+            renderGrowthChart(members);
+            
+            // رسم مخطط توزيع المستويات
+            renderLevelsChart(members);
+            
+            // رسم مخطط نشاط الأعضاء
+            renderActivityChart(members);
+            
+            // رسم مخطط الترقيات
+            renderRanksChart(members);
         }
 
         // رسم مخطط نمو الشبكة
@@ -693,34 +838,38 @@
 
         // تجميع البيانات حسب الأسابيع
         function aggregateDataByWeek(members) {
-            // إنشاء تاريخ قبل 12 أسبوعًا
-            const twelveWeeksAgo = new Date();
-            twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84); // 12 أسبوع * 7 أيام
+            // تحديد نطاق التاريخ بناءً على الفلتر
+            let startDate = new Date();
+            if (filterSettings.timeFilter === 'custom' && filterSettings.startDate) {
+                startDate = new Date(filterSettings.startDate);
+            } else {
+                const days = parseInt(filterSettings.timeFilter);
+                startDate.setDate(startDate.getDate() - days);
+            }
             
-            // تصفية الأعضاء الذين انضموا خلال الـ12 أسبوعًا الماضية
-            const recentMembers = members.filter(member => {
-                const joinDate = new Date(member.joinDate);
-                return joinDate >= twelveWeeksAgo;
-            });
+            const endDate = new Date();
+            if (filterSettings.timeFilter === 'custom' && filterSettings.endDate) {
+                endDate = new Date(filterSettings.endDate);
+            }
             
-            // تجميع البيانات حسب الأسبوع
+            // حساب عدد الأسابيع في النطاق
+            const weeksDiff = Math.ceil((endDate - startDate) / (7 * 24 * 60 * 60 * 1000));
             const weeklyData = {};
             
             // تهيئة جميع الأسابيع بقيمة 0
-            for (let i = 11; i >= 0; i--) {
-                const weekStart = new Date();
-                weekStart.setDate(weekStart.getDate() - (i * 7));
-                const weekKey = `الأسبوع ${12-i}`;
+            for (let i = 0; i < weeksDiff; i++) {
+                const weekStart = new Date(startDate);
+                weekStart.setDate(weekStart.getDate() + (i * 7));
+                const weekKey = `الأسبوع ${i+1}`;
                 weeklyData[weekKey] = 0;
             }
             
             // تعبئة البيانات الفعلية
-            recentMembers.forEach(member => {
+            members.forEach(member => {
                 const joinDate = new Date(member.joinDate);
-                const weekNumber = Math.floor((new Date() - joinDate) / (7 * 24 * 60 * 60 * 1000));
-                
-                if (weekNumber >= 0 && weekNumber < 12) {
-                    const weekKey = `الأسبوع ${12 - weekNumber}`;
+                if (joinDate >= startDate && joinDate <= endDate) {
+                    const weekNumber = Math.floor((joinDate - startDate) / (7 * 24 * 60 * 60 * 1000));
+                    const weekKey = `الأسبوع ${weekNumber+1}`;
                     weeklyData[weekKey] = (weeklyData[weekKey] || 0) + 1;
                 }
             });
@@ -793,7 +942,7 @@
             
             try {
                 // الحصول على بيانات النشاط الحقيقية من Firebase
-                const activityData = await getRealActivityData();
+                const activityData = await getRealActivityData(members);
                 
                 if (charts.activity) {
                     charts.activity.destroy();
@@ -889,7 +1038,7 @@
         }
 
         // الحصول على بيانات النشاط الحقيقية من Firebase
-        async function getRealActivityData() {
+        async function getRealActivityData(members) {
             try {
                 // جلب بيانات النشاط من Firebase
                 const activityRef = database.ref('userActivity');
@@ -909,22 +1058,23 @@
                 let todayActive = 0;
                 let weekActive = 0;
                 let monthActive = 0;
-                let totalUsers = 0;
                 
                 // حساب النشاط بناءً على البيانات
-                Object.keys(activityData).forEach(userId => {
-                    totalUsers++;
-                    const lastActivity = new Date(activityData[userId].lastActivity);
+                members.forEach(member => {
+                    const userActivity = activityData[member.id] || {};
+                    const lastActivity = userActivity.lastActivity ? new Date(userActivity.lastActivity) : new Date(member.joinDate);
                     
                     if (lastActivity >= today) todayActive++;
                     if (lastActivity >= weekStart) weekActive++;
                     if (lastActivity >= monthStart) monthActive++;
                 });
                 
+                const totalMembers = members.length;
+                
                 return {
-                    اليوم: Math.round((todayActive / totalUsers) * 100),
-                    الأسبوع: Math.round((weekActive / totalUsers) * 100),
-                    الشهر: Math.round((monthActive / totalUsers) * 100)
+                    اليوم: totalMembers > 0 ? Math.round((todayActive / totalMembers) * 100) : 0,
+                    الأسبوع: totalMembers > 0 ? Math.round((weekActive / totalMembers) * 100) : 0,
+                    الشهر: totalMembers > 0 ? Math.round((monthActive / totalMembers) * 100) : 0
                 };
                 
             } catch (error) {
@@ -990,20 +1140,12 @@
         }
 
         // تحميل الجداول
-        async function loadDataTables() {
-            try {
-                // الحصول على جميع أعضاء الشبكة
-                const allMembers = await getAllNetworkMembers(currentUserId);
-                
-                // تحميل أعلى الأعضاء أداءً
-                loadTopPerformers(allMembers);
-                
-                // تحميل آخر الإحالات
-                loadRecentReferrals(allMembers);
-                
-            } catch (error) {
-                console.error("Error loading data tables:", error);
-            }
+        function loadDataTables(members) {
+            // تحميل أعلى الأعضاء أداءً
+            loadTopPerformers(members);
+            
+            // تحميل آخر الإحالات
+            loadRecentReferrals(members);
         }
 
         // تحميل أعلى الأعضاء أداءً
@@ -1070,14 +1212,117 @@
 
         // إعداد مستمعي الأحداث
         function setupEventListeners() {
-            // تطبيق الفلاتر
-            document.getElementById('apply-filters').addEventListener('click', async () => {
-                // إعادة تحميل البيانات مع تطبيق الفلاتر
-                await loadReportsData();
+            // إظهار/إخفاء خيارات التاريخ المخصص
+            document.getElementById('time-filter').addEventListener('change', function() {
+                const customDateRange = document.getElementById('custom-date-range');
+                customDateRange.style.display = this.value === 'custom' ? 'flex' : 'none';
             });
+            
+            // تطبيق الفلاتر
+            document.getElementById('apply-filters').addEventListener('click', applyFiltersHandler);
+            
+            // إعادة تعيين الفلاتر
+            document.getElementById('reset-filters').addEventListener('click', resetFilters);
+            
+            // حفظ تفضيلات الفلاتر
+            document.getElementById('save-filters').addEventListener('click', saveFilterPreferences);
             
             // تصدير التقرير
             document.getElementById('export-report').addEventListener('click', exportReport);
+        }
+
+        // معالج تطبيق الفلاتر
+        async function applyFiltersHandler() {
+            // جمع إعدادات الفلتر من النموذج
+            filterSettings.timeFilter = document.getElementById('time-filter').value;
+            filterSettings.levelFilter = document.getElementById('level-filter').value;
+            filterSettings.rankFilter = document.getElementById('rank-filter').value;
+            filterSettings.activityFilter = document.getElementById('activity-filter').value;
+            
+            if (filterSettings.timeFilter === 'custom') {
+                filterSettings.startDate = document.getElementById('start-date').value;
+                filterSettings.endDate = document.getElementById('end-date').value;
+            } else {
+                filterSettings.startDate = null;
+                filterSettings.endDate = null;
+            }
+            
+            // إعادة تحميل البيانات مع تطبيق الفلاتر
+            const filteredMembers = applyFilters(allMembers);
+            
+            // تحديث الإحصائيات
+            loadNetworkStats(filteredMembers);
+            
+            // تحديث الرسوم البيانية
+            loadCharts(filteredMembers);
+            
+            // تحديث الجداول
+            loadDataTables(filteredMembers);
+        }
+
+        // إعادة تعيين الفلاتر
+        function resetFilters() {
+            // إعادة تعيين القيم الافتراضية
+            document.getElementById('time-filter').value = '30';
+            document.getElementById('level-filter').value = 'all';
+            document.getElementById('rank-filter').value = 'all';
+            document.getElementById('activity-filter').value = 'all';
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+            document.getElementById('custom-date-range').style.display = 'none';
+            
+            // إعادة تعيين إعدادات الفلتر
+            filterSettings = {
+                timeFilter: '30',
+                levelFilter: 'all',
+                rankFilter: 'all',
+                activityFilter: 'all',
+                startDate: null,
+                endDate: null
+            };
+            
+            // إعادة تحميل البيانات بدون فلاتر
+            loadNetworkStats(allMembers);
+            loadCharts(allMembers);
+            loadDataTables(allMembers);
+        }
+
+        // حفظ تفضيلات الفلاتر
+        function saveFilterPreferences() {
+            try {
+                localStorage.setItem('reportFilters', JSON.stringify(filterSettings));
+                alert('تم حفظ تفضيلات الفلاتر بنجاح!');
+            } catch (error) {
+                console.error("Error saving filter preferences:", error);
+                alert('حدث خطأ أثناء حفظ التفضيلات');
+            }
+        }
+
+        // تحميل تفضيلات الفلاتر
+        function loadFilterPreferences() {
+            try {
+                const savedFilters = localStorage.getItem('reportFilters');
+                if (savedFilters) {
+                    const filters = JSON.parse(savedFilters);
+                    
+                    // تطبيق الفلاتر المحفوظة
+                    document.getElementById('time-filter').value = filters.timeFilter;
+                    document.getElementById('level-filter').value = filters.levelFilter;
+                    document.getElementById('rank-filter').value = filters.rankFilter;
+                    document.getElementById('activity-filter').value = filters.activityFilter;
+                    
+                    if (filters.timeFilter === 'custom') {
+                        document.getElementById('custom-date-range').style.display = 'flex';
+                        document.getElementById('start-date').value = filters.startDate || '';
+                        document.getElementById('end-date').value = filters.endDate || '';
+                    }
+                    
+                    // تحديث إعدادات الفلتر
+                    filterSettings = filters;
+                }
+            } catch (error) {
+                console.error("Error loading filter preferences:", error);
+            }
         }
 
         // تصدير التقرير
